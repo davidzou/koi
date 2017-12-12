@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: '${plugin_name}'
+
+[compileJava,compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
+
+archivesBaseName="plugin-demo"
+version='1.0.0'
+
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'Gradle jar file example',
+                'Implementation-Version': version,
+                'Main-Class': '${package_name}.Main'
+  }
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}

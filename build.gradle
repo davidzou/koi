@@ -1,0 +1,42 @@
+group 'com.wonderingwall.koi'
+version '1.0.0-SNAPSHOT'
+
+apply plugin: 'groovy'
+
+sourceCompatibility = 1.8
+
+[compileJava,compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
+
+archivesBaseName="koi"
+version="1.0.0"
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle jar file example',
+                'Implementation-Version': version,
+                'Main-Class': 'com.wonderingwall.koi.Kohaku'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.3.11'
+    compile 'commons-cli:commons-cli:1.4'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task distTar(dependsOn: 'jar') {
+    doLast {
+        copy {
+            logger.quiet("Copy build jar deploy to tarball ${archivesBaseName}-${version}.jar")
+            from ("build/libs/") {
+                include "${archivesBaseName}-${version}.jar"
+            }
+            into 'tarball'
+        }
+    }
+}

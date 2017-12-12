@@ -1,0 +1,14 @@
+buildscript {
+    repositories {
+        maven{
+            url uri('buildSrc/repo')
+        }
+    }
+    dependencies {
+        classpath '${plugin_pom_group_id}:${plugin_pom_artifact_id}:1.0.0'
+    }
+}
+
+repositories{
+    mavenCentral()
+}

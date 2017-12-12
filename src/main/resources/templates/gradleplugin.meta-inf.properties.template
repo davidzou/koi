@@ -1,0 +1,1 @@
+implementation-class=${package_name}.${plugin_class_name}
