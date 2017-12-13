@@ -1,6 +1,8 @@
 ### 介绍
 旨在快速创建gradle plugin项目工程，提供快速稳定的创建方式
 
+![image](doc/images/koi.gif)
+
 ### 创建方式
 
 1. shell 文件创建
