@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: '${plugin_name}'
+apply plugin: '${plugin_id}'
 
 [compileJava,compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
 

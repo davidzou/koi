@@ -1,40 +1,54 @@
 package com.wonderingwall.koi
 
 import com.wonderingwall.koi.constant.Doitsu
-import com.wonderingwall.koi.constant.Senke
+import com.wonderingwall.koi.constant.Sanke
 import groovy.text.GStringTemplateEngine
+
+import java.util.spi.ResourceBundleControlProvider
 
 /**
  *
  */
 class Kohaku {
+    /** 当前版本 */
+    def VERSION = '1.0.0'
+    /** 当前支持的插件语言 */
+    def LANGUAGE = ['java', 'groovy', 'kotlin']
+
+    ResourceBundle rb
 
     static void main(String[] args) {
         Kohaku main = new Kohaku()
+        main.loadResource()
         main.help(args)
     }
 
+    def loadResource() {
+        rb = ResourceBundle.getBundle("string", Locale.default)
+    }
+
     def help(String[] args) {
-        def cli = new CliBuilder(usage: "koi [options] [targets]", header: "Options")
-        cli.h(longOpt: 'help', "It is show this.")
-        cli.n(longOpt: 'project-name', argName: 'name', required: true, args: 1, "工程项目名称")
-        cli._(longOpt: 'project-path', argName: 'path', args: 1, optionalArg: true, "项目存放路径，默认为'.'命令执行的当前目录")
-        cli._(longOpt: 'project-app-name', argName: 'name', args: 1, optionalArg: true, "项目中Demo名称，一般以app命名")
-        cli.N(longOpt: 'package-name', "包名, 包含了路径MainClass的路径")
-        cli._(longOpt: 'plugin-apply-name', "插件引用名称 apply plugin :'xxx' ")
-        cli._(longOpt: 'plugin-class-name', "插件主类名")
-        cli._(longOpt: 'plugin-class-task-name', "插件任务类名")
-        cli._(longOpt: 'plugin-class-extension-name', "插件扩展类名")
-        cli._(longOpt: 'plugin-artifact-id', "")
-        cli._(longOpt: 'plugin-group-id', "")
-        cli.v(longOpt: 'version', "版本号")
+        def cli = new CliBuilder(usage: rb.getString("koi.help.usage"), header: rb.getString("koi.help.header"), footer: rb.getString("koi.help.footer"))
+        cli.h(longOpt: 'help', rb.getString("koi.help.option.it"))
+        cli.n(longOpt: 'project-name', argName: 'name', required: true, args: 1, rb.getString("koi.help.option.project.name"))
+        cli._(longOpt: 'project-path', argName: 'path', args: 1, optionalArg: true, rb.getString("koi.help.option.project.path"))
+        cli._(longOpt: 'project-app-name', argName: 'name', args: 1, optionalArg: true, rb.getString("koi.help.option.project.app.name"))
+        cli.N(longOpt: 'package-name', rb.getString("koi.help.option.package.name"))
+        cli._(longOpt: 'plugin-id', rb.getString("koi.help.option.plugin.id"))
+        cli._(longOpt: 'plugin-class-name', rb.getString("koi.help.option.plugin.class.name"))
+        cli._(longOpt: 'plugin-class-task-name', rb.getString("koi.help.option.plugin.class.task.name"))
+        cli._(longOpt: 'plugin-class-extension-name', rb.getString("koi.help.option.plugin.class.extension.name"))
+        cli._(longOpt: 'plugin-artifact-id', rb.getString("koi.help.option.plugin.artifact.id"))
+        cli._(longOpt: 'plugin-group-id', rb.getString("koi.help.option.plugin.group.id"))
+        cli._(longOpt: 'plugin-language', args: 1, rb.getString("koi.help.option.plugin.language"))
+        cli.v(longOpt: 'version', rb.getString("koi.help.option.version"))
 
         // 无参时显示帮助
         if (args.size() == 0) { usage(cli) }
         // 处理参数
         args.find { param ->
-            if ("-h" == param) { usage(cli) }
-            if ("-v" == param) { version() }
+            if ("-h" == param || "--help" == param) { usage(cli) }
+            if ("-v" == param || "--version" == param) { version() }
         }
         def option = cli.parse(args)
         // 参数不合法，或者传参不正确直接返回
@@ -44,28 +58,38 @@ class Kohaku {
         // 显示版本
         if (option.v) {version()}
 
-        createProject(option.'project-path'?:'.', option.n?:Senke.DEFAULT_PROJECT_NAME,
+        println option.'plugin-language'?:"java"
+        assert LANGUAGE.contains(option.'plugin-language'?:"java")
+
+        createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME,
                 [
-                        (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME) : option.'project-app-name'?:Senke.DEFAULT_APP_NAME,                // Demo项目名
-                        (Doitsu.BINDING_KEY_PACKAGE_NAME) : option.N?:Senke.DEFAULT_PACKAGE_NAME,                                       // 包名
-                        (Doitsu.BINDING_KEY_PLUGIN_NAME) : option.'plugin-apply-name'?:Senke.DEFAULT_PLUGIN_NAME,                       // 插件名
-                        (Doitsu.BINDING_KEY_CLASS_NAME) : option.'plugin-class-name'?:Senke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,             // 插件主类
-                        (Doitsu.BINDING_KEY_CLASS_TASK_NAME) : option.'plugin-class-task-name'?:Senke.DEFAULT_PLUGIN_TASK_CLASS_NAME,   // 任务类
-                        (Doitsu.BINDING_KEY_POM_ARTIFACT_ID) : option.'plugin-artifact-id'?:'plugin',
-                        (Doitsu.BINDING_KEY_POM_GROUP_ID) : option.''?:Senke.DEFAULT_PACKAGE_NAME,
+                        (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,                // Demo项目名
+                        (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,                                       // 包名
+                        (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,                       // 插件名
+                        (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,             // 插件主类
+                        (Doitsu.BINDING_KEY_CLASS_TASK_NAME)       : option.'plugin-class-task-name'?:Sanke.DEFAULT_PLUGIN_TASK_CLASS_NAME,   // 任务类
+                        (Doitsu.BINDING_KEY_POM_ARTIFACT_ID)       : option.'plugin-artifact-id'?:Sanke.DEFAULT_POM_ARTIFACT_ID,
+                        (Doitsu.BINDING_KEY_POM_GROUP_ID) : option.''?:Sanke.DEFAULT_PACKAGE_NAME,
                 ]
         )
     }
 
     def version() {
-        println '''version: koi 1.0.0'''; System.exit(0)
+        println "version: ${rb.getString("project.name")} $VERSION"; System.exit(0)
     }
     def usage(CliBuilder cli) {
         cli.usage(); System.exit(0)
     }
 
+    /**
+     * To create gradle plugin project.
+     * @param path          Project path
+     * @param pathname      Project dir name
+     * @param params        All custom binding_key how to set custom project.
+     * @return  void
+     */
     def createProject(String path, String pathname, Map params) {
-        println "[createProject] -- path: $path , pathnaem: $pathname , params: $params"
+        println "[createProject] -- path: $path , pathname: $pathname , params: $params"
 
         def root = new File(path, pathname)
         if (!root.exists()) {
@@ -82,14 +106,21 @@ class Kohaku {
         /* 构建文件内容（全局设置） */
         readTemplate("/templates/build.gradle.template", params, new File(root.getAbsolutePath(), "build.gradle"))
         /* 创建插件项目模块 */
-        createPluginProjectModule(root.getAbsolutePath(), Senke.BUILDSRC_NAME, params)
-        createDemoProject(root.getAbsolutePath(), Senke.DEFAULT_APP_NAME, params)
+        createPluginProjectModule(root.getAbsolutePath(), Sanke.BUILDSRC_NAME, params)
+        createDemoProject(root.getAbsolutePath(), Sanke.DEFAULT_APP_NAME, params)
 
         /* 编译打包demo */
         runGradle(path, pathname, 'gradle', 'clean', 'build')
-        runGradle(root.getAbsolutePath(), Senke.DEFAULT_APP_NAME, 'gradle', 'hello')
+        runGradle(root.getAbsolutePath(), Sanke.DEFAULT_APP_NAME, 'gradle', 'hello')
     }
 
+    /**
+     *
+     * @param path          Project path
+     * @param pathname      Project dir name
+     * @param params        All custom binding_key how to set custom project.
+     * @return void
+     */
     def createPluginProjectModule(String path, String pathname, Map<String, String> params) {
         /* 构建目录 */
         // 插件目录
@@ -97,12 +128,12 @@ class Kohaku {
         buildSrc.mkdir()
 
         // Java代码目录
-        def javaSrc = new File(buildSrc.getAbsolutePath(), "${Senke.GRADLE_DIRECTORY_JAVA_SRC}")
+        def javaSrc = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_JAVA_SRC}")
         javaSrc.mkdirs()
         def classSrc = new File(javaSrc.getAbsolutePath(), params[Doitsu.BINDING_KEY_PACKAGE_NAME].replace('.', '/'))
         classSrc.mkdirs()
         // 插件META-INF
-        def metainf = new File(buildSrc.getAbsolutePath(), "${Senke.GRADLE_DIRECTORY_PLUGIN_RES}")
+        def metainf = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_PLUGIN_RES}")
         metainf.mkdirs()
 
         /* Plugin class */
@@ -110,7 +141,7 @@ class Kohaku {
         /* 插件Task实现 */
         readTemplate("/templates/gradleplugin.class.task.template", params, new File(classSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_CLASS_TASK_NAME] as String).plus(".java") ))
         /* 插件描述文件 */
-        readTemplate("/templates/gradleplugin.meta-inf.properties.template", params, new File(metainf.getAbsolutePath(), (params[Doitsu.BINDING_KEY_PLUGIN_NAME] as String).plus(".properties") ))
+        readTemplate("/templates/gradleplugin.meta-inf.properties.template", params, new File(metainf.getAbsolutePath(), (params[Doitsu.BINDING_KEY_PLUGIN_ID] as String).plus(".properties") ))
         /* build.gradle */
         readTemplate("/templates/gradleplugin.build.gradle.template", params, new File(buildSrc.getAbsolutePath(), "build.gradle"))
 
@@ -122,7 +153,7 @@ class Kohaku {
         def app = new File(path, pathname)
         app.mkdir()
         // demo 应用（default Java）
-        def javaSrc = new File(app.getAbsolutePath(), "${Senke.GRADLE_DIRECTORY_JAVA_SRC}")
+        def javaSrc = new File(app.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_JAVA_SRC}")
         javaSrc.mkdirs()
         def classSrc = new File(javaSrc.getAbsolutePath(), params[Doitsu.BINDING_KEY_PACKAGE_NAME].replace('.', '/'))
         classSrc.mkdirs()

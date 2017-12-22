@@ -16,6 +16,13 @@
     java -jar tarball/koi-1.0.0.jar -n plugindemo
     ```
 
+### 使用文档
+
+    不断完善中
+    
+### 如何联系？
+
+    wearecisco@gmail.com
 
 ### License
 

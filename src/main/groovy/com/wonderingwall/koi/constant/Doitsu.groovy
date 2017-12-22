@@ -1,34 +1,62 @@
 package com.wonderingwall.koi.constant
 
+
 interface Doitsu {
-    /**
-     *
-     */
-    String BINDING_KEY_PACKAGE_NAME = "package_name"
-    String BINDING_KEY_CLASS_NAME = "plugin_class_name"
-    String BINDING_KEY_CLASS_TASK_NAME = "plugin_class_task_name"
-
-    /**
-     * 插件名
-     */
-    String BINDING_KEY_PLUGIN_NAME = "plugin_name"
-
     /**
      * 用于配置settings.gradle中 include包含的项目名称
      *
-     * {@link Senke#DEFAULT_APP_NAME}
+     * {@link Sanke#DEFAULT_APP_NAME}
      */
     String BINDING_KEY_PLUGIN_MODULE_APP_NAME = "plugin_module_app_name"
 
-    String BINDING_KEY_POM_ARTIFACT_ID = "plugin_pom_artifact_id"
-    String BINDING_KEY_POM_GROUP_ID = "plugin_pom_group_id"
+    /**
+     * 工程项目包名
+     *
+     * {@link Sanke#DEFAULT_PACKAGE_NAME}
+     */
+    String BINDING_KEY_PACKAGE_NAME = "package_name"
+    /**
+     * 插件名
+     * <pre>
+     *     apply plugin: 'plugin_id'
+     * </pre>
+     * {@link Sanke#DEFAULT_PLUGIN_ID}
+     */
+    String BINDING_KEY_PLUGIN_ID = "plugin_id"
+    /**
+     * 插件类（入口）
+     *
+     * org.gradle.api.Plugin
+     * {@link Sanke#DEFAULT_PLUGIN_MAIN_CLASS_NAME}
+     */
+    String BINDING_KEY_CLASS_NAME = "plugin_class_name"
+    /**
+     * 任务类（Task）
+     *
+     * org.gradle.api.DefaultTask
+     * {@link Sanke#DEFAULT_PLUGIN_TASK_CLASS_NAME}
+     */
+    String BINDING_KEY_CLASS_TASK_NAME = "plugin_class_task_name"
 
-//    cli.n(longOpt: 'project-name', argName: 'name', required: true, args: 1, "工程项目名称")
-//    cli._(longOpt: 'project-path', argName: 'path', args: 1, optionalArg: true, "项目存放路径，默认为'.'命令执行的当前目录")
-//    cli._(longOpt: 'project-app-name', argName: 'name', args: 1, optionalArg: true, "项目中Demo名称，一般以app命名")
-//    cli.N(longOpt: 'package-name', "包名, 包含了路径MainClass的路径")
-//    cli._(longOpt: 'plugin-apply-name', "插件引用名称 apply plugin :'xxx' ")
-//    cli._(longOpt: 'plugin-class-name', "插件主类名")
-//    cli._(longOpt: 'plugin-class-task-name', "插件任务类名")
-//    cli._(longOpt: 'plugin-class-extension-name', "插件扩展类名")
+    /**
+     * 自定义参数
+     */
+    String BINDING_KEY_CLASS_EXTENSION_NAME = "plugin_class_extension_name"
+
+    /**
+     * class path plugin name what to deploy maven repo
+     *
+     * <pre>
+     *     classpath 'group:artifact:version'
+     * </pre>
+     */
+    String BINDING_KEY_POM_ARTIFACT_ID = "plugin_pom_artifact_id"
+    /**
+     * class path plugin name what to deploy maven repo. It always is package_name normal
+     *
+     * <pre>
+     *     classpath 'group:artifact:version'
+     * </pre>
+     */
+    String BINDING_KEY_POM_GROUP_ID = "plugin_pom_group_id"
 }
