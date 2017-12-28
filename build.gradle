@@ -1,3 +1,6 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
 group 'com.wonderingwall.koi'
 version '1.0.0-SNAPSHOT'
 
@@ -29,14 +32,33 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+// 项目打包执行的时间获取
+def projectBuildDate = new Date().format("yyyy.MM.dd")
+def author = "DavidZou  --  wearecisco@gmail.com"
+
+//def tarSpec = copySpec(value = Tar.class) {
+////    from("$project.buildDir") {
+////        include "shell/koi.sh"
+////    }
+//    source "$project.buildDir/shell/koi.sh"
+//    compression Compression.GZIP
+//    baseName 'koi-spec'
+//}
+
 task distTar(dependsOn: 'jar') {
     doLast {
         copy {
-            logger.quiet("Copy build jar deploy to tarball ${archivesBaseName}-${version}.jar")
-            from ("build/libs/") {
-                include "${archivesBaseName}-${version}.jar"
+            logger.quiet("Copy exec shell deploy to build dir")
+            from ("src/shell/") {
+                include "koi.sh"
+                filter(FixCrLfFilter)
+                filter(ReplaceTokens, tokens: [date: projectBuildDate, version: version, author: author])
+                filteringCharset = 'UTF-8'
             }
-            into 'tarball'
+            into "$project.buildDir"
+        }
+        exec {
+            commandLine 'tar', "-C", "build/", '-zcvf', "tarball/${archivesBaseName}-${version}.tar.gz", "libs/", "koi.sh"
         }
     }
 }
