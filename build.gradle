@@ -15,7 +15,7 @@ version="1.0.0"
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle jar file example',
+        attributes 'Implementation-Title': 'koi what a gradle plugin project creator.',
                 'Implementation-Version': version,
                 'Main-Class': 'com.wonderingwall.koi.Kohaku'
     }
@@ -34,16 +34,7 @@ dependencies {
 
 // 项目打包执行的时间获取
 def projectBuildDate = new Date().format("yyyy.MM.dd")
-def author = "DavidZou  --  wearecisco@gmail.com"
-
-//def tarSpec = copySpec(value = Tar.class) {
-////    from("$project.buildDir") {
-////        include "shell/koi.sh"
-////    }
-//    source "$project.buildDir/shell/koi.sh"
-//    compression Compression.GZIP
-//    baseName 'koi-spec'
-//}
+def author = "DavidZou (wearecisco@gmail.com)"
 
 task distTar(dependsOn: 'jar') {
     doLast {
@@ -51,14 +42,29 @@ task distTar(dependsOn: 'jar') {
             logger.quiet("Copy exec shell deploy to build dir")
             from ("src/shell/") {
                 include "koi.sh"
+                rename { fileName ->
+                    fileName.replace('.sh', '')
+                }
                 filter(FixCrLfFilter)
                 filter(ReplaceTokens, tokens: [date: projectBuildDate, version: version, author: author])
                 filteringCharset = 'UTF-8'
             }
             into "$project.buildDir"
         }
+
+        mkdir ("tarball/${version}")
+        copy {
+            logger.quiet("Copy jar to tarball")
+            from ("$project.buildDir/libs") {
+                include "*.jar"
+            }
+            into "tarball/${version}"
+        }
         exec {
-            commandLine 'tar', "-C", "build/", '-zcvf', "tarball/${archivesBaseName}-${version}.tar.gz", "libs/", "koi.sh"
+            commandLine 'tar', "-C", "build/", '-cvf', "tarball/${version}/${archivesBaseName}-${version}.tar", "libs/", "koi"
+        }
+        exec {
+            commandLine 'tar', "-C", "build/", '-zcvf', "tarball/${version}/${archivesBaseName}-${version}.tar.gz", "libs/", "koi"
         }
     }
 }
