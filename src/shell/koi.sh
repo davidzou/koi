@@ -18,4 +18,4 @@
 BREW_HOME="/usr/local/Cellar/koi/@version@"
 
 # brew install
-java -jar "$BREW_HOME/koi-@version@.jar" $@
+java -jar "$BREW_HOME/libs/koi-@version@.jar" $@
