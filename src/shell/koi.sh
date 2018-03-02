@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ****************************************************************************************
-#  [脚本标题描述] 
+#  [脚本标题描述]
 #  version    : @version@
 #  author     : @author@
 #  date       : @date@
@@ -15,5 +15,7 @@
 #
 # ****************************************************************************************
 
+BREW_HOME="/usr/local/Cellar/koi/@version@"
+
 # brew install
-java -jar `find . -name koi-@version@.jar` $@
+java -jar "$BREW_HOME/koi-@version@.jar" $@
