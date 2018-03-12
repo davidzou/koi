@@ -1,0 +1,61 @@
+println "hello"
+
+task wrapper(type: Wrapper) {
+    // gradleVersion = '2.0'
+    distributionType = Wrapper.DistributionType.ALL
+    distributionUrl = "http://apkbuild-base.intra.yeshj.com:8088/repository/maven-public/gradle-4.5-all.zip"
+}
+
+// 添加默认
+import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+
+
+apply plugin:EnterpriseRepositoryPlugin
+
+class EnterpriseRepositoryPlugin implements Plugin<Gradle> {
+
+    private static String ENTERPRISE_REPOSITORY_URL = "http://apkbuild-base.intra.yeshj.com:8088/repository/maven-public/"
+    // private static String ENTERPRISE_REPOSITORY_URL = "http://192.168.38.81:8088/repository/maven-public/"
+    // private static String ENTERPRISE_REPOSITORY_URL = "http://cms.m.hujiang.com:8081/nexus/content/groups/public/"
+
+    void apply(Gradle gradle) {
+        // If server not reachable，it not inner net. use default.
+        def address = InetAddress.getByName("apkbuild-base.intra.yeshj.com")
+        def timeoutMillis = 2000
+        if (!address.isReachable(timeoutMillis)) {
+            println "ping ... reachable"
+            return
+        }
+
+        //
+        Map map = System.getenv();
+        if (map.containsKey("GRADLE_HOME")) {
+            println map.get("GRADLE_HOME")
+            String gradleHome = map.get("GRADLE_HOME")
+        } else {
+            println "not found 'GRADLE_HOME' in var"
+        }
+
+        return
+        // ONLY USE ENTERPRISE REPO FOR DEPENDENCIES
+        gradle.allprojects{ project ->
+            project.repositories {
+                // Remove all repositories not pointing to the enterprise repository url
+                all { ArtifactRepository repo ->
+                    if (!(repo instanceof MavenArtifactRepository) ||
+                            repo.url.toString() != ENTERPRISE_REPOSITORY_URL) {
+                        project.logger.lifecycle "Repository ${repo.url} removed. Only $ENTERPRISE_REPOSITORY_URL is allowed"
+                        remove repo
+                    }
+                }
+
+                // add the enterprise repository
+                maven {
+                    name "STANDARD_ENTERPRISE_REPO"
+                    url ENTERPRISE_REPOSITORY_URL
+                }
+            }
+        }
+    }
+}

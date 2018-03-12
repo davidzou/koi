@@ -11,7 +11,7 @@ import java.util.spi.ResourceBundleControlProvider
  */
 class Kohaku {
     /** 当前版本 */
-    def VERSION = '1.0.0'
+    def VERSION = '1.0.1'
     /** 当前支持的插件语言 */
     def LANGUAGE = ['java', 'groovy', 'kotlin']
 
@@ -30,17 +30,17 @@ class Kohaku {
     def help(String[] args) {
         def cli = new CliBuilder(usage: rb.getString("koi.help.usage"), header: rb.getString("koi.help.header"), footer: rb.getString("koi.help.footer"))
         cli.h(longOpt: 'help', rb.getString("koi.help.option.it"))
-        cli.n(longOpt: 'project-name', argName: 'name', required: true, args: 1, rb.getString("koi.help.option.project.name"))
-        cli._(longOpt: 'project-path', argName: 'path', args: 1, optionalArg: true, rb.getString("koi.help.option.project.path"))
-        cli._(longOpt: 'project-app-name', argName: 'name', args: 1, optionalArg: true, rb.getString("koi.help.option.project.app.name"))
-        cli.N(longOpt: 'package-name', rb.getString("koi.help.option.package.name"))
-        cli._(longOpt: 'plugin-id', rb.getString("koi.help.option.plugin.id"))
-        cli._(longOpt: 'plugin-class-name', rb.getString("koi.help.option.plugin.class.name"))
-        cli._(longOpt: 'plugin-class-task-name', rb.getString("koi.help.option.plugin.class.task.name"))
-        cli._(longOpt: 'plugin-class-extension-name', rb.getString("koi.help.option.plugin.class.extension.name"))
-        cli._(longOpt: 'plugin-artifact-id', rb.getString("koi.help.option.plugin.artifact.id"))
-        cli._(longOpt: 'plugin-group-id', rb.getString("koi.help.option.plugin.group.id"))
-        cli._(longOpt: 'plugin-language', args: 1, rb.getString("koi.help.option.plugin.language"))
+        cli.n(longOpt: 'project-name', argName: 'name', args: 1, required: true, rb.getString("koi.help.option.project.name"))
+        cli._(longOpt: 'project-path', argName: 'path', args: 1, rb.getString("koi.help.option.project.path"))
+        cli._(longOpt: 'project-app-name', argName: 'name', args: 1, rb.getString("koi.help.option.project.app.name"))
+        cli.N(longOpt: 'package-name', args: 1, rb.getString("koi.help.option.package.name"))
+        cli._(longOpt: 'plugin-id', args:  1, rb.getString("koi.help.option.plugin.id"))
+        cli._(longOpt: 'plugin-class-name', args: 1, rb.getString("koi.help.option.plugin.class.name"))
+        cli._(longOpt: 'plugin-class-task-name', args: 1, rb.getString("koi.help.option.plugin.class.task.name"))
+        cli._(longOpt: 'plugin-class-extension-name', args: 1, rb.getString("koi.help.option.plugin.class.extension.name"))
+        cli._(longOpt: 'plugin-artifact-id', args: 1, rb.getString("koi.help.option.plugin.artifact.id"))
+        cli._(longOpt: 'plugin-group-id', args: 1, rb.getString("koi.help.option.plugin.group.id"))
+        cli._(longOpt: 'plugin-language', args: 1, argName: 'groovy|java|kotlin', rb.getString("koi.help.option.plugin.language"))
         cli.v(longOpt: 'version', rb.getString("koi.help.option.version"))
 
         // 无参时显示帮助
@@ -62,16 +62,15 @@ class Kohaku {
         assert LANGUAGE.contains(option.'plugin-language'?:"java")
 
         createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME,
-                [
-                        (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,                // Demo项目名
-                        (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,                                       // 包名
-                        (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,                       // 插件名
-                        (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,             // 插件主类
-                        (Doitsu.BINDING_KEY_CLASS_TASK_NAME)       : option.'plugin-class-task-name'?:Sanke.DEFAULT_PLUGIN_TASK_CLASS_NAME,   // 任务类
-                        (Doitsu.BINDING_KEY_POM_ARTIFACT_ID)       : option.'plugin-artifact-id'?:Sanke.DEFAULT_POM_ARTIFACT_ID,
-                        (Doitsu.BINDING_KEY_POM_GROUP_ID) : option.''?:Sanke.DEFAULT_PACKAGE_NAME,
-                ]
-        )
+        [
+                (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,                // Demo项目名
+                (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,                                       // 包名
+                (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,                       // 插件名
+                (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,             // 插件主类
+                (Doitsu.BINDING_KEY_CLASS_TASK_NAME)       : option.'plugin-class-task-name'?:Sanke.DEFAULT_PLUGIN_TASK_CLASS_NAME,   // 任务类
+                (Doitsu.BINDING_KEY_POM_ARTIFACT_ID)       : option.'plugin-artifact-id'?:Sanke.DEFAULT_POM_ARTIFACT_ID,
+                (Doitsu.BINDING_KEY_POM_GROUP_ID) : option.''?:Sanke.DEFAULT_PACKAGE_NAME,
+        ])
     }
 
     def version() {
@@ -130,7 +129,7 @@ class Kohaku {
         // Java代码目录
         def javaSrc = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_JAVA_SRC}")
         javaSrc.mkdirs()
-        def classSrc = new File(javaSrc.getAbsolutePath(), params[Doitsu.BINDING_KEY_PACKAGE_NAME].replace('.', '/'))
+        def classSrc = new File(javaSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_PACKAGE_NAME] as String).replace('.', '/'))
         classSrc.mkdirs()
         // 插件META-INF
         def metainf = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_PLUGIN_RES}")
