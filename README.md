@@ -1,24 +1,32 @@
 ### 介绍
 旨在快速创建gradle plugin项目工程，提供快速稳定的创建方式
 
-![image](doc/images/koi.gif)
+![image](docs/images/koi.gif)
 
 ### 创建方式
 
-1. shell 文件创建
+1. Brew安装
+
+    ```
+    brew tap davidzou/koi
+    brew install koi
+    ```
+2. jar 方式
+
+    ```
+    java -jar tarball/koi-1.x.x.jar -n plugindemo
+    ```
+
+3. shell 文件创建
     
     ```
     bash koi_create.sh 
     ```
-2. jar 方式
-    
-    ```
-    java -jar tarball/koi-1.0.0.jar -n plugindemo
-    ```
+
 
 ### 使用文档
 
-    不断完善中
+    [使用文档](docs/Usage.md)
     
 ### 如何联系？
 

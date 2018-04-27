@@ -20,6 +20,8 @@ interface Sanke {
     /** Default plugin task class name that class extend org.gradle.api.DefaultTask */
     String DEFAULT_PLUGIN_TASK_CLASS_NAME = "PluginTask"
 
+    String DEFAULT_PLUGIN_EXTENSTION_NAME = "PluginExtension"
+
     /** The gradle source dir standard by java language */
     String GRADLE_DIRECTORY_JAVA_SRC = "src/main/java"
     /** The gradle resource dir standard */
@@ -32,6 +34,6 @@ interface Sanke {
     String GRADLE_DIRECTORY_GROOVY_SRC = "src/main/groovy"
 
 
-    String DEFAULT_POM_ARTIFACT_ID = "plugin"
-
+    String DEFAULT_POM_ARTIFACT_ID = "demo"
+    String DEFAULT_POM_GROUP_ID = "com.wonderingwall.plugin"
 }

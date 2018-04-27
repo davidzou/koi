@@ -14,6 +14,12 @@
 #  [环境配置]:
 #
 # ****************************************************************************************
+version=1.0.2
+
+sed -ig "s/version=.*/version=\"${version}\"/g" build.gradle
+rm build.gradleg
+
 gradle --no-daemon clean build
 
 gradle distTar
+

@@ -5,3 +5,4 @@ out/
 gradlew*
 gradle/
 *.iml
+macos

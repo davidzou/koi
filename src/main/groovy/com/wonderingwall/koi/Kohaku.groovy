@@ -15,7 +15,9 @@ class Kohaku {
     /** 当前支持的插件语言 */
     def LANGUAGE = ['java', 'groovy', 'kotlin']
 
-    ResourceBundle rb
+    def LANGUAGE_POSTFIX = ['.java','.groovy','.kt']
+
+    private ResourceBundle rb
 
     static void main(String[] args) {
         Kohaku main = new Kohaku()
@@ -61,15 +63,26 @@ class Kohaku {
         println option.'plugin-language'?:"java"
         assert LANGUAGE.contains(option.'plugin-language'?:"java")
 
-        createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME,
+        assert "Coming soon...", (option.'plugin-language'?:"java") == 'kotlin'
+
+        createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME, option.'language'?:LANGUAGE[0],
         [
-                (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,                // Demo项目名
-                (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,                                       // 包名
-                (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,                       // 插件名
-                (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,             // 插件主类
-                (Doitsu.BINDING_KEY_CLASS_TASK_NAME)       : option.'plugin-class-task-name'?:Sanke.DEFAULT_PLUGIN_TASK_CLASS_NAME,   // 任务类
+                // 插件内测试用模块项目名称，默认为app，插件存放在buildSrc中。
+                (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,
+                // 插件包名（Java包路径规则），即groupId.artifactId的结合体，如果不被自定义的时候
+                (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,
+                // 插件名称 apply plugin： '此处定义的名称'
+                (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,
+                // 插件主类名，插件入口，继承Plugin类
+                (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,
+                // 插件Task类，继承DefaultTask类
+                (Doitsu.BINDING_KEY_CLASS_TASK_NAME)       : option.'plugin-class-task-name'?:Sanke.DEFAULT_PLUGIN_TASK_CLASS_NAME,
+                // 插件DSL定义
+                (Doitsu.BINDING_KEY_CLASS_EXTENSION_NAME)  : option.'plugin-class-extension-name'?:Sanke.DEFAULT_PLUGIN_EXTENSTION_NAME,
+                // 插件artifact值, 这是发布到Maven库使用的标识
                 (Doitsu.BINDING_KEY_POM_ARTIFACT_ID)       : option.'plugin-artifact-id'?:Sanke.DEFAULT_POM_ARTIFACT_ID,
-                (Doitsu.BINDING_KEY_POM_GROUP_ID) : option.''?:Sanke.DEFAULT_PACKAGE_NAME,
+                // 插件group值，这是发布到Maven库使用的标识
+                (Doitsu.BINDING_KEY_POM_GROUP_ID)          : option.'plugin-group-id'?:Sanke.DEFAULT_POM_GROUP_ID,
         ])
     }
 
@@ -84,10 +97,12 @@ class Kohaku {
      * To create gradle plugin project.
      * @param path          Project path
      * @param pathname      Project dir name
-     * @param params        All custom binding_key how to set custom project.
+     * @param language      Language What Class used
+     * @param params        All custom binding_key how to set custom project.<br>
+     *                      替换所有模板数据的绑定值
      * @return  void
      */
-    def createProject(String path, String pathname, Map params) {
+    def createProject(String path, String pathname, String language, Map params) {
         println "[createProject] -- path: $path , pathname: $pathname , params: $params"
 
         def root = new File(path, pathname)
@@ -104,9 +119,11 @@ class Kohaku {
         readTemplate("/templates/settings.gradle.template", params, new File(root.getAbsolutePath(), "settings.gradle"))
         /* 构建文件内容（全局设置） */
         readTemplate("/templates/build.gradle.template", params, new File(root.getAbsolutePath(), "build.gradle"))
+
         /* 创建插件项目模块 */
-        createPluginProjectModule(root.getAbsolutePath(), Sanke.BUILDSRC_NAME, params)
-        createDemoProject(root.getAbsolutePath(), Sanke.DEFAULT_APP_NAME, params)
+        createPluginProjectModule(root.getAbsolutePath(), Sanke.BUILDSRC_NAME, language, params)
+        /* 创建测试项目 */
+        createDemoProject(root.getAbsolutePath(), Sanke.DEFAULT_APP_NAME, language, params)
 
         /* 编译打包demo */
         runGradle(path, pathname, 'gradle', 'clean', 'build')
@@ -120,7 +137,7 @@ class Kohaku {
      * @param params        All custom binding_key how to set custom project.
      * @return void
      */
-    def createPluginProjectModule(String path, String pathname, Map<String, String> params) {
+    def createPluginProjectModule(String path, String pathname, String language, Map<String, String> params) {
         /* 构建目录 */
         // 插件目录
         def buildSrc = new File(path, pathname)
@@ -135,10 +152,13 @@ class Kohaku {
         def metainf = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_PLUGIN_RES}")
         metainf.mkdirs()
 
+        String postfix = LANGUAGE_POSTFIX[LANGUAGE.indexOf(language)]
+        println "posfix $postfix"
+
         /* Plugin class */
-        readTemplate("/templates/gradleplugin.class.main.template", params, new File(classSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_CLASS_NAME] as String).plus(".java") ))
+        readTemplate("/templates/" + language + "/gradleplugin.class.main.template", params, new File(classSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_CLASS_NAME] as String).plus(postfix) ))
         /* 插件Task实现 */
-        readTemplate("/templates/gradleplugin.class.task.template", params, new File(classSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_CLASS_TASK_NAME] as String).plus(".java") ))
+        readTemplate("/templates/" + language + "/gradleplugin.class.task.template", params, new File(classSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_CLASS_TASK_NAME] as String).plus(postfix) ))
         /* 插件描述文件 */
         readTemplate("/templates/gradleplugin.meta-inf.properties.template", params, new File(metainf.getAbsolutePath(), (params[Doitsu.BINDING_KEY_PLUGIN_ID] as String).plus(".properties") ))
         /* build.gradle */
@@ -147,7 +167,7 @@ class Kohaku {
         runGradle(path, pathname, 'gradle', 'clean', 'build', 'upload')
     }
 
-    def createDemoProject(String path, String pathname, Map<String, String> params) {
+    def createDemoProject(String path, String pathname, String language, Map<String, String> params) {
         /* 构建目录 */
         def app = new File(path, pathname)
         app.mkdir()
@@ -157,9 +177,11 @@ class Kohaku {
         def classSrc = new File(javaSrc.getAbsolutePath(), params[Doitsu.BINDING_KEY_PACKAGE_NAME].replace('.', '/'))
         classSrc.mkdirs()
 
-        println "app.getAbsolutePath() + $app"
+        String postfix = LANGUAGE_POSTFIX[LANGUAGE.indexOf(language)]
+        println "app.getAbsolutePath() --  $app"
+        println "postfix -- $postfix"
         // 类文件
-        readTemplate("/templates/app.class.main.template", params, new File(classSrc.getAbsolutePath(), "Main".plus(".java")))
+        readTemplate("/templates/" + language + "/app.class.main.template", params, new File(classSrc.getAbsolutePath(), "Main".plus(postfix)))
         // Gradle打包
         readTemplate("/templates/app.build.gradle.template", params, new File(app.getAbsolutePath(), "build.gradle"))
     }

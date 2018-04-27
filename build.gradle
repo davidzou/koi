@@ -11,7 +11,8 @@ sourceCompatibility = 1.8
 [compileJava,compileTestJava,javadoc]*.options*.encoding = 'UTF-8'
 
 archivesBaseName="koi"
-version="1.0.1"
+// 这里不用管，build.sh里面自动替换配置
+version="1.0.2"
 
 jar {
     manifest {
