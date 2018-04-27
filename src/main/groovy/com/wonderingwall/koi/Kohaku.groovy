@@ -60,12 +60,12 @@ class Kohaku {
         // 显示版本
         if (option.v) {version()}
 
-        println option.'plugin-language'?:"java"
-        assert LANGUAGE.contains(option.'plugin-language'?:"java")
+        String language = option.'plugin-language'?:"java"
+        println "$language " + LANGUAGE.indexOf(language)
+        assert LANGUAGE.contains(language)
+        assert "kotlin" != language
 
-        assert "Coming soon...", (option.'plugin-language'?:"java") == 'kotlin'
-
-        createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME, option.'language'?:LANGUAGE[0],
+        createProject(option.'project-path'?:'.', option.n?:Sanke.DEFAULT_PROJECT_NAME, language,
         [
                 // 插件内测试用模块项目名称，默认为app，插件存放在buildSrc中。
                 (Doitsu.BINDING_KEY_PLUGIN_MODULE_APP_NAME): option.'project-app-name'?:Sanke.DEFAULT_APP_NAME,
@@ -103,17 +103,18 @@ class Kohaku {
      * @return  void
      */
     def createProject(String path, String pathname, String language, Map params) {
-        println "[createProject] -- path: $path , pathname: $pathname , params: $params"
+        println "[createProject] -- path: $path , pathname: $pathname , language: $language , params: $params"
 
         def root = new File(path, pathname)
         if (!root.exists()) {
             boolean successed = root.mkdir()
-            println successed
             if (!successed) {
                 println("mkdir '$path' error")
                 return
             }
         }
+
+        println LANGUAGE_POSTFIX[LANGUAGE.indexOf(language)]
 
         /* Gradle项目配置文件(全局设置) */
         readTemplate("/templates/settings.gradle.template", params, new File(root.getAbsolutePath(), "settings.gradle"))
