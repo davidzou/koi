@@ -11,11 +11,13 @@ import java.util.spi.ResourceBundleControlProvider
  */
 class Kohaku {
     /** 当前版本 */
-    def VERSION = '1.0.1'
+    def VERSION = '1.0.3'
     /** 当前支持的插件语言 */
     def LANGUAGE = ['java', 'groovy', 'kotlin']
 
     def LANGUAGE_POSTFIX = ['.java','.groovy','.kt']
+
+    def LANGUAGE_COMPILE_PLUGIN_ID = ['java', 'groovy', 'groovy']
 
     private ResourceBundle rb
 
@@ -73,6 +75,8 @@ class Kohaku {
                 (Doitsu.BINDING_KEY_PACKAGE_NAME)          : option.N?:Sanke.DEFAULT_PACKAGE_NAME,
                 // 插件名称 apply plugin： '此处定义的名称'
                 (Doitsu.BINDING_KEY_PLUGIN_ID)             : option.'plugin-id'?:Sanke.DEFAULT_PLUGIN_ID,
+                // 编译插件
+                (Doitsu.BINDING_KEY_COMPILE_PLUGIN_ID)     : LANGUAGE_COMPILE_PLUGIN_ID[LANGUAGE.indexOf(language)],
                 // 插件主类名，插件入口，继承Plugin类
                 (Doitsu.BINDING_KEY_CLASS_NAME)            : option.'plugin-class-name'?:Sanke.DEFAULT_PLUGIN_MAIN_CLASS_NAME,
                 // 插件Task类，继承DefaultTask类
@@ -145,7 +149,7 @@ class Kohaku {
         buildSrc.mkdir()
 
         // Java代码目录
-        def javaSrc = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_JAVA_SRC}")
+        def javaSrc = new File(buildSrc.getAbsolutePath(), "${Sanke.GRADLE_DIRECTORY_JAVA_SRC}".replace("java", language))
         javaSrc.mkdirs()
         def classSrc = new File(javaSrc.getAbsolutePath(), (params[Doitsu.BINDING_KEY_PACKAGE_NAME] as String).replace('.', '/'))
         classSrc.mkdirs()
@@ -166,6 +170,8 @@ class Kohaku {
         readTemplate("/templates/gradleplugin.build.gradle.template", params, new File(buildSrc.getAbsolutePath(), "build.gradle"))
 
         runGradle(path, pathname, 'gradle', 'clean', 'build', 'upload')
+
+        println ''' Compile plugin project '''
     }
 
     def createDemoProject(String path, String pathname, String language, Map<String, String> params) {
@@ -178,11 +184,9 @@ class Kohaku {
         def classSrc = new File(javaSrc.getAbsolutePath(), params[Doitsu.BINDING_KEY_PACKAGE_NAME].replace('.', '/'))
         classSrc.mkdirs()
 
-        String postfix = LANGUAGE_POSTFIX[LANGUAGE.indexOf(language)]
         println "app.getAbsolutePath() --  $app"
-        println "postfix -- $postfix"
         // 类文件
-        readTemplate("/templates/" + language + "/app.class.main.template", params, new File(classSrc.getAbsolutePath(), "Main".plus(postfix)))
+        readTemplate("/templates/" + language + "/app.class.main.template", params, new File(classSrc.getAbsolutePath(), "Main.java"))
         // Gradle打包
         readTemplate("/templates/app.build.gradle.template", params, new File(app.getAbsolutePath(), "build.gradle"))
     }
@@ -205,7 +209,7 @@ class Kohaku {
 
     def validJar(){
         def sout = new StringBuilder(), serr = new StringBuilder()
-        def proc = "jar -jar app/build/libs/plugin-demo-1.0.0.jar".execute()
+        def proc = "jar -jar app/build/libs/plugin-demo-${VERSION}.jar".execute()
         proc.consumeProcessOutput(sout, serr)
         proc.waitFor()
         println '''To valid demo plugin can be run.'''

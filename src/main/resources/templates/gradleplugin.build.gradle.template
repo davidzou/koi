@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: '${compile_plugin_id}'
 apply plugin: 'maven'
 
 dependencies {

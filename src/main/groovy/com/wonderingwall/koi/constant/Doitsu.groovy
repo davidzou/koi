@@ -24,6 +24,13 @@ interface Doitsu {
      */
     String BINDING_KEY_PLUGIN_ID = "plugin_id"
     /**
+     * 编译插件名称
+     * <pre>
+     *     apply plugin: 'java'
+     * </pre>
+     */
+    String BINDING_KEY_COMPILE_PLUGIN_ID = "compile_plugin_id"
+    /**
      * 插件类（入口）
      *
      * org.gradle.api.Plugin
